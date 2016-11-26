@@ -29,9 +29,9 @@
 #' transactions <- sample_transactions(3, minDate=as.Date("2010-1-1"), maxDate=as.Date("2015-12-31"))
 #' customers <- get_customers(transactions, colsFinancial="Amount", catCols="Product")
 #' transactions.cmltv <- cumulate_transactions(transactions, colsFinancial="Amount")
-#' customer_cohorts(transactions.cmltv, customers)
+#' customer_cohorts(transactions.cmltv, customers, colCohort="Product.First")
 
-customer_cohorts <- function(customers, transactions.cmltv, colCohort, colCustomerID="CustomerID", colsFinancial="auto",
+customer_cohorts <- function(transactions.cmltv, customers, colCohort, colCustomerID="CustomerID", colsFinancial="auto",
                              colTransactionDate="TransactionDate", allCohort=TRUE, format="triangular",
                              minLeftOrigin=min(transactions.cmltv$FirstValuationDate), originLength=12, rowDev=12, colDev=12,
                              lastValuationDate=max(transactions.cmltv$ValuationDate), fromMinLeftOrigin=TRUE,

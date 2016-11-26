@@ -4,7 +4,7 @@
 \alias{customer_cohorts}
 \title{Make Triangles}
 \usage{
-customer_cohorts(customers, transactions.cmltv, colCohort,
+customer_cohorts(transactions.cmltv, customers, colCohort,
   colCustomerID = "CustomerID", colsFinancial = "auto",
   colTransactionDate = "TransactionDate", allCohort = TRUE,
   format = "triangular",
@@ -49,6 +49,6 @@ set.seed(2357)
 transactions <- sample_transactions(3, minDate=as.Date("2010-1-1"), maxDate=as.Date("2015-12-31"))
 customers <- get_customers(transactions, colsFinancial="Amount", catCols="Product")
 transactions.cmltv <- cumulate_transactions(transactions, colsFinancial="Amount")
-customer_cohorts(transactions.cmltv, customers)
+customer_cohorts(transactions.cmltv, customers, colCohort="Product.First")
 }
 
