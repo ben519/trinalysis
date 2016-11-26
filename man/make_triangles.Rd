@@ -9,7 +9,7 @@ make_triangles(transactions.cmltv, format = "triangular",
   "-1-1")), originLength = 12, rowDev = 12, colDev = 12,
   lastValuationDate = max(transactions.cmltv$ValuationDate),
   fromMinLeftOrigin = TRUE, initialAge = originLength,
-  financialCols = "auto", verbose = FALSE)
+  colsFinancial = "auto", verbose = FALSE)
 }
 \arguments{
 \item{transactions.cmltv}{A data.table of cumulative transaction valuations (result of calling cumulate_transactions())}
@@ -30,7 +30,9 @@ make_triangles(transactions.cmltv, format = "triangular",
 
 \item{initialAge}{See ?triangle_skeleton}
 
-\item{financialCols}{What financial columns in \code{transactions.cmltv} should generate triangles? Default="auto" guesses}
+\item{colsFinancial}{What financial columns in \code{transactions.cmltv} should generate triangles? Default="auto" guesses}
+
+\item{verbose}{Should progress details be displayed?}
 }
 \description{
 Convert triangles in tall format to a list of triangles in triangular format
@@ -43,8 +45,8 @@ library(data.table)
 
 set.seed(2357)
 transactions <- sample_transactions(3, minDate=as.Date("2010-1-1"), maxDate=as.Date("2015-12-31"))
-transactions.cmltv <- cumulate_transactions(transactions, financialCols="Amount")
+transactions.cmltv <- cumulate_transactions(transactions, colsFinancial="Amount")
 make_triangles(transactions.cmltv)  # guess the financial columns
-make_triangles(transactions.cmltv, financialCols=c("Transactions.cmltv"))  # specify the financial columns
+make_triangles(transactions.cmltv, colsFinancial=c("Transactions.cmltv"))  # specify the financial columns
 }
 

@@ -16,7 +16,8 @@
 #' @param lastValuationDate See ?triangle_skeleton
 #' @param fromMinLeftOrigin See ?triangle_skeleton
 #' @param initialAge See ?triangle_skeleton
-#' @param financialCols What financial columns in \code{transactions.cmltv} should generate triangles? Default="auto" guesses
+#' @param colsFinancial What financial columns in \code{transactions.cmltv} should generate triangles? Default="auto" guesses
+#' @param verbose Should progress details be displayed?
 #'
 #' @export
 #' @import data.table
@@ -26,26 +27,26 @@
 #'
 #' set.seed(2357)
 #' transactions <- sample_transactions(3, minDate=as.Date("2010-1-1"), maxDate=as.Date("2015-12-31"))
-#' transactions.cmltv <- cumulate_transactions(transactions, financialCols="Amount")
+#' transactions.cmltv <- cumulate_transactions(transactions, colsFinancial="Amount")
 #' make_triangles(transactions.cmltv)  # guess the financial columns
-#' make_triangles(transactions.cmltv, financialCols=c("Transactions.cmltv"))  # specify the financial columns
+#' make_triangles(transactions.cmltv, colsFinancial=c("Transactions.cmltv"))  # specify the financial columns
 
 make_triangles <- function(transactions.cmltv, format="triangular",
                            minLeftOrigin=as.Date(paste0(min(year(transactions.cmltv$FirstValuationDate)), "-1-1")),
                            originLength=12, rowDev=12, colDev=12, lastValuationDate=max(transactions.cmltv$ValuationDate),
-                           fromMinLeftOrigin=TRUE, initialAge=originLength, financialCols="auto", verbose=FALSE){
+                           fromMinLeftOrigin=TRUE, initialAge=originLength, colsFinancial="auto", verbose=FALSE){
   # Method to build triangles from a cumulative transactions dataset (result of calling cumulate_transactions())
   # format can be one of {"tall", "triangular"}
   # If "tall", a single data.table is returned
   # If "triangular", a list of triangle objects is returned
-  # financialCols should be a character vector corresponding to cumulative-valued columns of transactions.cmltv for which to
+  # colsFinancial should be a character vector corresponding to cumulative-valued columns of transactions.cmltv for which to
   # generate triangles (in addition to the guaranteed triangles {ActiveCustomers, NewCustomers, NewCustomers.cmltv}). If "auto",
-  # financialCols will look for numeric columns whose name ends in ".cmltv"
+  # colsFinancial will look for numeric columns whose name ends in ".cmltv"
 
-  # Get financialCols
-  if(financialCols == "auto"){
+  # Get colsFinancial
+  if(colsFinancial == "auto"){
     numeric_cols <- colnames(transactions.cmltv)[sapply(transactions.cmltv, is.numeric)]
-    financialCols <- numeric_cols[grepl("\\.cmltv$", numeric_cols)]
+    colsFinancial <- numeric_cols[grepl("\\.cmltv$", numeric_cols)]
   }
 
   # Get the triangle skeletons
@@ -68,8 +69,8 @@ make_triangles <- function(transactions.cmltv, format="triangular",
       # Build a table with the primary columns
       primary <- data.table(ValuationDate=valDts, ActiveCustomers=0L, NewCustomers=0L, NewCustomers.cmltv=0L)
 
-      if(length(financialCols) > 0){
-        extra.cmltv <- transactions.cmltv.subset[, financialCols, with=FALSE]
+      if(length(colsFinancial) > 0){
+        extra.cmltv <- transactions.cmltv.subset[, colsFinancial, with=FALSE]
         extra.cmltv <- extra.cmltv[, lapply(.SD, function(x) rep(ifelse(class(x) == "integer", 0L, 0), length(valDts)))]
 
         # Build a table with the extra non cumulative columns
@@ -112,8 +113,8 @@ make_triangles <- function(transactions.cmltv, format="triangular",
 
     # Aggregate results
     expr <- "ActiveCustomers=sum(PNum == i.PNum, na.rm=TRUE), NewCustomers.cmltv=sum(!is.na(PNum))"
-    if(length(financialCols) > 0)
-      expr <- paste(expr, ",", paste0(financialCols, "=sum(", financialCols, ", na.rm=TRUE)", collapse=", "))
+    if(length(colsFinancial) > 0)
+      expr <- paste(expr, ",", paste0(colsFinancial, "=sum(", colsFinancial, ", na.rm=TRUE)", collapse=", "))
     expr <- paste("list(", expr, ")")
     result <- forwardjoin[, eval(parse(text=expr)), by=ValuationDate]
 
