@@ -2,12 +2,11 @@
 % Please edit documentation in R/customer_cohorts.R
 \name{customer_cohorts}
 \alias{customer_cohorts}
-\title{Make Triangles}
+\title{Customer Cohorts}
 \usage{
 customer_cohorts(transactions.cmltv, customers, colCohort,
-  colCustomerID = "CustomerID", colsFinancial = "auto",
-  colTransactionDate = "TransactionDate", allCohort = TRUE,
-  format = "triangular",
+  colCustomerID = "CustomerID", colTransactionDate = "TransactionDate",
+  colsFinancial = "auto", allCohort = TRUE, format = "triangular",
   minLeftOrigin = min(transactions.cmltv$FirstValuationDate),
   originLength = 12, rowDev = 12, colDev = 12,
   lastValuationDate = max(transactions.cmltv$ValuationDate),
@@ -16,7 +15,17 @@ customer_cohorts(transactions.cmltv, customers, colCohort,
 \arguments{
 \item{transactions.cmltv}{A data.table of cumulative transaction valuations (result of calling cumulate_transactions())}
 
-\item{colsFinancial}{What financial columns in \code{transactions.cmltv} should generate triangles? Default="auto" guesses}
+\item{customers}{A data.table of customers (probably the result of calling get_customers())}
+
+\item{colCohort}{Name of the column for which to group cohorts}
+
+\item{colCustomerID}{Name of the CustomerID column}
+
+\item{colTransactionDate}{Name of the TransactionDate column}
+
+\item{colsFinancial}{Character vector corresponding to the name of financial columns in \code{transactions.cmltv}}
+
+\item{allCohort}{Triangles be returned representing the combined sum of all cohorts?}
 
 \item{format}{How should the triangles be returned? Either "tall" (a data.table) or "triangular" (a list of data.tables)}
 
@@ -37,10 +46,11 @@ customer_cohorts(transactions.cmltv, customers, colCohort,
 \item{verbose}{Should progress details be displayed?}
 }
 \description{
-Convert triangles in tall format to a list of triangles in triangular format
+Generate customer level triangles, i.e. triangles per customer-level feature (e.g. first product purchased)
 }
 \details{
-Returns a list of data.table objects
+Returns a list of triangles (possibly a list of lists, if format="triangular"), where the top level list elements correspond
+to the unique values of the colCohort in the customers dataset
 }
 \examples{
 library(data.table)

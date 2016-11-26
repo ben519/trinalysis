@@ -6,20 +6,18 @@
 \usage{
 get_customers(transactions, colCustomerID = "CustomerID",
   colTransactionDate = "TransactionDate", colsFinancial = NULL,
-  catCols = NULL)
+  colsCategory = NULL)
 }
 \arguments{
-\item{nCusts}{How many customers?}
+\item{transactions}{A data.table of transactions with a column for CustomerID and TransactionDate}
 
-\item{sdTransactions}{The number of transactions per customer = \code{abs(ceiling(rnorm(n=1, sd=sdTransactions)))}}
+\item{colCustomerID}{Name of the CustomerID column}
 
-\item{sdAmount}{The amount of each transaction = \code{abs(round(rnorm(n=1, sd=sdAmount),2))}}
+\item{colTransactionDate}{Name of the TransactionDate column}
 
-\item{minDate}{The minimum possible date a transaction could occur}
+\item{colsFinancial}{Character vector corresponding to the name of financial columns in \code{transactions}}
 
-\item{maxDate}{The maximum possible date a transaction could occur}
-
-\item{products}{A character vector of potential product names}
+\item{colsCategory}{Character vector corresponding to the name of categorical columns in \code{transactions}}
 }
 \description{
 Build a customers dataset from a transactions dataset with required columns {CustomerID, TransactionDate} (or alternate names)
@@ -33,6 +31,6 @@ library(data.table)
 set.seed(2016)
 transactions <- sample_transactions(10)
 get_customers(transactions)
-get_customers(transactions, colsFinancial=c("Amount"), catCols=c("Product"))
+get_customers(transactions, colsFinancial=c("Amount"), colsCategory=c("Product"))
 }
 
