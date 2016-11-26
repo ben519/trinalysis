@@ -2,6 +2,7 @@
 
 export(as.triangle)
 export(cumulate_transactions)
+export(customer_cohorts)
 export(eom)
 export(get_customers)
 export(make_triangles)

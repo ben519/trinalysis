@@ -90,14 +90,14 @@ transaction_cohorts <- function(transactions, colCohort, colCustomerID="Customer
 
   # If allCohort is TRUE, build the triangle for all chorts
   if(allCohort){
-    if(verbose) print("Building triangles for All")
+    if(verbose) print("Building triangles for _All")
     transactions.cmltv <- cumulate_transactions(transactions.copy, colsFinancial=colsFinancial)
     allTri <- make_triangles(
       transactions.cmltv, format=format, minLeftOrigin=minLeftOrigin, originLength=originLength, rowDev=rowDev, colDev=colDev,
       lastValuationDate=lastValuationDate, fromMinLeftOrigin=fromMinLeftOrigin, initialAge=initialAge
     )
     triList_all <- list(allTri)
-    names(triList_all) <- "_AllCohorts"
+    names(triList_all) <- "_All"
     triList <- c(triList_all, triList)
   }
 

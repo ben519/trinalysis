@@ -23,25 +23,25 @@
 #' set.seed(2016)
 #' transactions <- sample_transactions(10)
 #' get_customers(transactions)
-#' get_customers(transactions, financialCols=c("Amount"), catCols=c("Product"))
+#' get_customers(transactions, colsFinancial=c("Amount"), catCols=c("Product"))
 
-get_customers <- function(transactions, colCustomerID="CustomerID", colTransactionDate="TransactionDate", financialCols=NULL, catCols=NULL){
+get_customers <- function(transactions, colCustomerID="CustomerID", colTransactionDate="TransactionDate", colsFinancial=NULL, catCols=NULL){
   # Build a customers dataset from a transactions dataset with required columns {CustomerID, TransactionDate} (or alternate names)
-  # If financialCols is given, each associated financial column in transactions will be summed and averaged per customer
+  # If colsFinancial is given, each associated financial column in transactions will be summed and averaged per customer
   # If catCols is given, the first value of each categorical column will be given per customer (based on his earliest
   # transaction with ties broken randomly)
 
   # Copy the transactions dataset so we don't muck it up
-  transactions.copy <- copy(transactions[, c(colCustomerID, colTransactionDate, financialCols, catCols), with=FALSE])
+  transactions.copy <- copy(transactions[, c(colCustomerID, colTransactionDate, colsFinancial, catCols), with=FALSE])
   setnames(transactions.copy, c(colCustomerID, colTransactionDate), c("CustomerID", "TransactionDate"))
 
-  # Build expression to get the sum and mean of financialCols
-  if(is.null(financialCols)){
+  # Build expression to get the sum and mean of colsFinancial
+  if(is.null(colsFinancial)){
     expr <- paste0("list(Transactions=.N, TransactionDate.First=min(TransactionDate), TransactionDate.Last=max(TransactionDate))")
   } else{
     expr <- paste0(
       "list(Transactions=.N, TransactionDate.First=min(TransactionDate), TransactionDate.Last=max(TransactionDate), ",
-      paste0(financialCols, ".Sum=sum(", financialCols, "), ", financialCols, ".Avg=mean(", financialCols, ")", collapse=", "),
+      paste0(colsFinancial, ".Sum=sum(", colsFinancial, "), ", colsFinancial, ".Avg=mean(", colsFinancial, ")", collapse=", "),
       ")"
     )
   }

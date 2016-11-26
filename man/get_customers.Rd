@@ -5,7 +5,7 @@
 \title{Get Customers}
 \usage{
 get_customers(transactions, colCustomerID = "CustomerID",
-  colTransactionDate = "TransactionDate", financialCols = NULL,
+  colTransactionDate = "TransactionDate", colsFinancial = NULL,
   catCols = NULL)
 }
 \arguments{
@@ -33,6 +33,6 @@ library(data.table)
 set.seed(2016)
 transactions <- sample_transactions(10)
 get_customers(transactions)
-get_customers(transactions, financialCols=c("Amount"), catCols=c("Product"))
+get_customers(transactions, colsFinancial=c("Amount"), catCols=c("Product"))
 }
 
