@@ -2,4 +2,8 @@
 
 export(eom)
 export(sample_transactions)
+export(triangle_skeleton)
 import(data.table)
+importFrom(lubridate,"%m+%")
+importFrom(lubridate,"%m-%")
+importFrom(lubridate,rollback)
