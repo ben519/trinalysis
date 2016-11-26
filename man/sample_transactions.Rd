@@ -22,7 +22,7 @@ sample_transactions(nCusts, sdTransactions = 10, sdAmount = 10,
 \item{products}{A character vector of potential product names}
 }
 \description{
-Generate a sample transactions dataset
+Generate a sample transactions dataset such that the simulated data has a (somewhat) realistic pattern of customer churn
 }
 \details{
 Returns a data.table object with columns {TransactionID, TransactionDate, CustomerID, Amount, Product}

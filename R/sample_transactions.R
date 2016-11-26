@@ -2,7 +2,7 @@
 #' Sample Transactions
 #'
 #' @description
-#' Generate a sample transactions dataset
+#' Generate a sample transactions dataset such that the simulated data has a (somewhat) realistic pattern of customer churn
 #'
 #' @details
 #' Returns a data.table object with columns {TransactionID, TransactionDate, CustomerID, Amount, Product}
