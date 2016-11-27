@@ -24,8 +24,8 @@ transactions <- sample_transactions(
   nCusts=100, sdTransactions=10, sdAmount=10, minDate=as.Date("2010-1-1"), maxDate=as.Date("2015-12-31"), 
   products=c("baseball", "basketball", "football", "soccerball")
 )
+```
 
-transactions
 |  TransactionID  |  TransactionDate  |  CustomerID  |  Amount  |  Product   |
 |:---------------:|:-----------------:|:------------:|:--------:|:----------:|
 |        1        |    2011-11-23     |      1       |   6.88   |  football  |
@@ -36,13 +36,12 @@ transactions
 |       400       |    2011-01-31     |      99      |  12.85   |  football  |
 |       401       |    2015-01-02     |     100      |  16.52   |  baseball  |
 
-```
 
 ### Extract customers from transactions
 ```r
 customers <- get_customers(transactions, colsCategory=c("Product"))
+```
 
-customers
 |  CustomerID  |  Transactions  |  TransactionDate.First  |  TransactionDate.Last  |  Product.First  |
 |:------------:|:--------------:|:-----------------------:|:----------------------:|:---------------:|
 |      1       |       1        |       2011-11-23        |       2011-11-23       |    football     |
@@ -53,13 +52,12 @@ customers
 |      99      |       7        |       2010-02-12        |       2015-08-26       |   soccerball    |
 |     100      |       1        |       2015-01-02        |       2015-01-02       |    baseball     |
 
-```
 
 ### Cumulative Transactions by Month
 ```r
 transactions.cmltv <- cumulate_transactions(transactions=transactions, colsFinancial="Amount")
+```
 
-transactions
 |  CustomerID  |  FirstValuationDate  |  ValuationDate  |  Transactions.cmltv  |  Amount.cmltv  |
 |:------------:|:--------------------:|:---------------:|:--------------------:|:--------------:|
 |      1       |      2011-11-30      |   2011-11-30    |          1           |      6.88      |
@@ -70,13 +68,12 @@ transactions
 |      99      |      2010-02-28      |   2015-08-31    |          7           |     60.17      |
 |     100      |      2015-01-31      |   2015-01-31    |          1           |     16.52      |
 
-```
 
 ### Basic Cohort Analyses
 ```r
 triangles <- make_triangles(transactions.cmltv, format="triangular")  # many params not shown
+```
 
-triangles
 |            &nbsp;             |  12  |  24  |  36  |  48  |  60  |  72  |
 |:-----------------------------:|:----:|:----:|:----:|:----:|:----:|:----:|
 |  **2010-01-01 - 2010-12-31**  |  30  |  48  |  69  |  86  |  97  | 113  |
@@ -165,14 +162,14 @@ Table: Transactions
 |  **2015-01-01 - 2015-12-31**  |  20  |  NA  |  NA  |  NA  |  NA  |  NA  |
 
 Table: Transactions.cmltv
-
-```
 
 ### Transaction Cohort Analyses
 ```r
 transCohorts <- transaction_cohorts(transactions, colCohort="Product")
+```
 
-transCohorts[["baseball"]]
+#### Baseball Cohorts (note that the following triangles are generate for *every* product)
+
 |            &nbsp;             |  12  |  24  |  36  |  48  |  60  |  72  |
 |:-----------------------------:|:----:|:----:|:----:|:----:|:----:|:----:|
 |  **2010-01-01 - 2010-12-31**  |  30  |  48  |  69  |  86  |  97  | 113  |
@@ -236,13 +233,12 @@ Table: Transactions
 
 Table: Transactions.cmltv
 
-```
-
 ### Customer Cohort Analyses
 ```r
 custCohorts <- customer_cohorts(transactions.cmltv, customers, colCohort="Product.First")
+```
 
-custCohorts[["football"]]
+#### Customers first purchasing a football (note that the following triangles are generate for *every* product)
 
 |            &nbsp;             |  12  |  24  |  36  |  48  |  60  |  72  |
 |:-----------------------------:|:----:|:----:|:----:|:----:|:----:|:----:|
@@ -332,8 +328,6 @@ Table: Transactions
 |  **2015-01-01 - 2015-12-31**  |  20  |  NA  |  NA  |  NA  |  NA  |  NA  |
 
 Table: Transactions.cmltv
-
-```
 
 
 ## Contact
