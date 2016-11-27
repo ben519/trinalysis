@@ -7,5 +7,7 @@ Maintainer: Ben Gorman <bgorman@GormAnalysis.com>
 Description: A collection of functions for working with transaction data, most notably make_triangles() which generates customer
     cohort analyses.
 Encoding: UTF-8
+URL: https://github.com/ben519/trinalysis
+BugReports: https://github.com/ben519/trinalysis/issues
 LazyData: true
 RoxygenNote: 5.0.1
