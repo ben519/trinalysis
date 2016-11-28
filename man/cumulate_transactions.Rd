@@ -5,7 +5,8 @@
 \title{Cumulate Transactions}
 \usage{
 cumulate_transactions(transactions, colCustomerID = "CustomerID",
-  colTransactionDate = "TransactionDate", colsFinancial = NULL)
+  colTransactionDate = "TransactionDate", colsFinancial = NULL,
+  period = "monthly")
 }
 \arguments{
 \item{transactions}{A data.table of transactions with a column for CustomerID and TransactionDate}
@@ -15,6 +16,8 @@ cumulate_transactions(transactions, colCustomerID = "CustomerID",
 \item{colTransactionDate}{Name of the TransactionDate column}
 
 \item{colsFinancial}{Character vector corresponding to the name of financial columns in \code{transactions}}
+
+\item{period}{Either "daily" or "monthly"}
 }
 \description{
 Aggregate transactions monthly and measure cumulative financial values as well as cumulative transaction count per customer
@@ -30,5 +33,6 @@ set.seed(2016)
 transactions <- sample_transactions(10)
 cumulate_transactions(transactions)
 cumulate_transactions(transactions, colsFinancial=c("Amount"))
+cumulate_transactions(transactions, colsFinancial=c("Amount"), period="daily")
 }
 
