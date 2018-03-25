@@ -41,6 +41,7 @@ triangle_skeleton <- function(minLeftOrigin, fromMinLeftOrigin = FALSE, originLe
   } else{
     leftOrigins <- rev(seq((lastValuationDate + 1) %m-% months(initialAge), minLeftOrigin, by=paste(-rowDev, "months")))
   }
+  if(length(leftOrigins) == 0) stop("Not enough data for the given parameters")
 
   # Generate all rightOrigins
   rightOrigins <- leftOrigins %m+% months(originLength) - 1

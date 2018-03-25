@@ -42,8 +42,8 @@ make_triangles <- function(transactions, format = "triangular", minLeftOrigin = 
   # Method to build triangles from transactions
 
   # Assign values for minLeftOrigin, lastValuationDate
-  if(is.null(minLeftOrigin)) minLeftOrigin <- min(transactions$TransactionDate)
-  if(is.null(lastValuationDate)) lastValuationDate <- max(transactions$TransactionDate)
+  if(is.null(minLeftOrigin)) minLeftOrigin <- min(transactions[[colTransactionDate]])
+  if(is.null(lastValuationDate)) lastValuationDate <- max(transactions[[colTransactionDate]])
 
   # Assign values for colsFinancial
   if(colsFinancial[1L] == "auto"){
@@ -71,7 +71,8 @@ make_triangles <- function(transactions, format = "triangular", minLeftOrigin = 
   transdaily <- transactions[, list(
     Transactions = .N,
     Amount = sum(Amount, na.rm = T)
-  ), keyby = list(CustomerID, TransactionDate)]
+  ), keyby = eval(parse(text = paste0("list(", colCustomerID, ", ", colTransactionDate, ")")))]
+  setnames(transdaily, c(colCustomerID, colTransactionDate), c("CustomerID", "TransactionDate"))
   for(col in colsFinancial) set(transdaily, j = col, value = as.numeric(transdaily[[col]]))
 
   # Determine unique customers, origin periods
