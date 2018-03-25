@@ -4,15 +4,14 @@
 \alias{make_triangles}
 \title{Make Triangles}
 \usage{
-make_triangles(transactions.cmltv, format = "triangular",
-  minLeftOrigin = as.Date(paste0(min(year(transactions.cmltv$FirstValuationDate)),
-  "-1-1")), originLength = 12, rowDev = 12, colDev = 12,
-  lastValuationDate = max(transactions.cmltv$ValuationDate),
+make_triangles(transactions, format = "triangular", minLeftOrigin = NULL,
+  originLength = 12, rowDev = 12, colDev = 12, lastValuationDate = NULL,
   fromMinLeftOrigin = TRUE, initialAge = originLength,
-  colsFinancial = "auto", verbose = FALSE)
+  colsFinancial = "auto", verbose = FALSE, colCustomerID = "CustomerID",
+  colTransactionDate = "TransactionDate", method = "static")
 }
 \arguments{
-\item{transactions.cmltv}{A data.table of cumulative transaction valuations (result of calling cumulate_transactions())}
+\item{transactions}{A data.table of with at least columns {TransactionID, TransactionDate, CustomerID}}
 
 \item{format}{How should the triangles be returned? Either "tall" (a data.table) or "triangular" (a list of data.tables)}
 
@@ -30,9 +29,16 @@ make_triangles(transactions.cmltv, format = "triangular",
 
 \item{initialAge}{See ?triangle_skeleton}
 
-\item{colsFinancial}{What financial columns in \code{transactions.cmltv} should generate triangles? Default="auto" guesses}
+\item{colsFinancial}{What financial columns in \code{transactions} should generate triangles? Default="auto" guesses}
 
 \item{verbose}{Should progress details be displayed?}
+
+\item{colCustomerID}{Name of column representing customer id. Default="CustomerID"}
+
+\item{colTransactionDate}{Name of column representing transaction date Default="TransactionDate"}
+
+\item{method}{One of {"static", "dynamic"}. If static, Age x is relative to the beginning of the cohort. If dynamic,
+Age x is relative to the acquisition date of each customer}
 }
 \description{
 Convert triangles in tall format to a list of triangles in triangular format
@@ -45,8 +51,7 @@ library(data.table)
 
 set.seed(2357)
 transactions <- sample_transactions(3, minDate=as.Date("2010-1-1"), maxDate=as.Date("2015-12-31"))
-transactions.cmltv <- cumulate_transactions(transactions, colsFinancial="Amount")
-make_triangles(transactions.cmltv)  # guess the financial columns
-make_triangles(transactions.cmltv, colsFinancial=c("Transactions.cmltv"))  # specify the financial columns
+make_triangles(transactions)
+make_triangles(transactions, colsFinancial=c("Amount"))
+make_triangles(transactions, colsFinancial=c("Amount"), method = "dynamic")
 }
-

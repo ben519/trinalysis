@@ -36,4 +36,3 @@ sample_transactions(nCusts=10, sdTransactions=5, sdAmount=1000)
 sample_transactions(nCusts=10, minDate=as.Date("2000-1-1"), maxDate=as.Date("2016-12-31"))
 sample_transactions(nCusts=10, products=c("baseball", "football", "soccerball"))
 }
-

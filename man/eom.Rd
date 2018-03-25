@@ -19,4 +19,3 @@ Returns the last day of the month for each date in a vector of dates
 eom(as.Date("2016-2-14"))
 eom(seq.Date(as.Date("2015-1-1"), as.Date("2015-12-31"), by="month"))
 }
-

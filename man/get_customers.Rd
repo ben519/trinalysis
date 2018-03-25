@@ -33,4 +33,3 @@ transactions <- sample_transactions(10)
 get_customers(transactions)
 get_customers(transactions, colsFinancial=c("Amount"), colsCategory=c("Product"))
 }
-

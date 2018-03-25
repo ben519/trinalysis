@@ -4,10 +4,12 @@
 \alias{tall_to_triangular}
 \title{Tall to Triangular}
 \usage{
-tall_to_triangular(triangleDT)
+tall_to_triangular(triangleDT, descriptiveHeaders = TRUE)
 }
 \arguments{
 \item{triangleDT}{Triangles in tall, data.table format}
+
+\item{triangleDT}{Should headers be descriptive?}
 }
 \description{
 Convert triangles in tall format to a list of triangles in triangular format
@@ -20,8 +22,6 @@ library(data.table)
 
 set.seed(2357)
 transactions <- sample_transactions(10)
-transactions.cmltv <- cumulate_transactions(transactions)
-triangles <- make_triangles(transactions.cmltv, format="tall")
+triangles <- make_triangles(transactions, format="tall")
 tall_to_triangular(triangles)
 }
-

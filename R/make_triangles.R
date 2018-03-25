@@ -7,7 +7,7 @@
 #' @details
 #' Returns a list of data.table objects
 #'
-#' @param transactions.cmltv A data.table of cumulative transaction valuations (result of calling cumulate_transactions())
+#' @param transactions A data.table of with at least columns {TransactionID, TransactionDate, CustomerID}
 #' @param format How should the triangles be returned? Either "tall" (a data.table) or "triangular" (a list of data.tables)
 #' @param minLeftOrigin See ?triangle_skeleton
 #' @param originLength See ?triangle_skeleton
@@ -16,8 +16,12 @@
 #' @param lastValuationDate See ?triangle_skeleton
 #' @param fromMinLeftOrigin See ?triangle_skeleton
 #' @param initialAge See ?triangle_skeleton
-#' @param colsFinancial What financial columns in \code{transactions.cmltv} should generate triangles? Default="auto" guesses
+#' @param colsFinancial What financial columns in \code{transactions} should generate triangles? Default="auto" guesses
 #' @param verbose Should progress details be displayed?
+#' @param colCustomerID Name of column representing customer id. Default="CustomerID"
+#' @param colTransactionDate Name of column representing transaction date Default="TransactionDate"
+#' @param method One of {"static", "dynamic"}. If static, Age x is relative to the beginning of the cohort. If dynamic,
+#' Age x is relative to the acquisition date of each customer
 #'
 #' @export
 #' @import data.table
@@ -27,121 +31,127 @@
 #'
 #' set.seed(2357)
 #' transactions <- sample_transactions(3, minDate=as.Date("2010-1-1"), maxDate=as.Date("2015-12-31"))
-#' transactions.cmltv <- cumulate_transactions(transactions, colsFinancial="Amount")
-#' make_triangles(transactions.cmltv)  # guess the financial columns
-#' make_triangles(transactions.cmltv, colsFinancial=c("Transactions.cmltv"))  # specify the financial columns
+#' make_triangles(transactions)
+#' make_triangles(transactions, colsFinancial=c("Amount"))
+#' make_triangles(transactions, colsFinancial=c("Amount"), method = "dynamic")
 
-make_triangles <- function(transactions.cmltv, format="triangular",
-                           minLeftOrigin=as.Date(paste0(min(year(transactions.cmltv$FirstValuationDate)), "-1-1")),
-                           originLength=12, rowDev=12, colDev=12, lastValuationDate=max(transactions.cmltv$ValuationDate),
-                           fromMinLeftOrigin=TRUE, initialAge=originLength, colsFinancial="auto", verbose=FALSE){
-  # Method to build triangles from a cumulative transactions dataset (result of calling cumulate_transactions())
-  # format can be one of {"tall", "triangular"}
-  # If "tall", a single data.table is returned
-  # If "triangular", a list of triangle objects is returned
-  # colsFinancial should be a character vector corresponding to cumulative-valued columns of transactions.cmltv for which to
-  # generate triangles (in addition to the guaranteed triangles {ActiveCustomers, NewCustomers, NewCustomers.cmltv}). If "auto",
-  # colsFinancial will look for numeric columns whose name ends in ".cmltv"
+make_triangles <- function(transactions, format = "triangular", minLeftOrigin = NULL, originLength = 12, rowDev = 12,
+                           colDev = 12, lastValuationDate = NULL, fromMinLeftOrigin = TRUE, initialAge = originLength,
+                           colsFinancial = "auto", verbose=FALSE, colCustomerID = "CustomerID",
+                           colTransactionDate = "TransactionDate", method = "static"){
+  # Method to build triangles from transactions
 
-  # Get colsFinancial
-  if(colsFinancial == "auto"){
-    numeric_cols <- colnames(transactions.cmltv)[sapply(transactions.cmltv, is.numeric)]
-    colsFinancial <- numeric_cols[grepl("\\.cmltv$", numeric_cols)]
+  # Assign values for minLeftOrigin, lastValuationDate
+  if(is.null(minLeftOrigin)) minLeftOrigin <- min(transactions$TransactionDate)
+  if(is.null(lastValuationDate)) lastValuationDate <- max(transactions$TransactionDate)
+
+  # Assign values for colsFinancial
+  if(colsFinancial[1L] == "auto"){
+    numeric_cols <- colnames(transactions)[sapply(transactions, is.numeric)]
+    colsFinancial <- setdiff(numeric_cols, c(colCustomerID, colTransactionDate))
+
+    # Exclude columns that end in "id", "num", or "number"
+    colsFinancial <- colsFinancial[!stringr::str_detect(stringr::str_to_lower(colsFinancial), "id|number|num$")]
   }
 
   # Get the triangle skeletons
   if(verbose) print("Getting triangle skeletons")
-  params <- triangle_skeleton(minLeftOrigin=minLeftOrigin, originLength=originLength, rowDev=rowDev, colDev=colDev,
-                              lastValuationDate=lastValuationDate, fromMinLeftOrigin=fromMinLeftOrigin, initialAge=initialAge)
+  skel <- triangle_skeleton(
+    minLeftOrigin = minLeftOrigin,
+    fromMinLeftOrigin = fromMinLeftOrigin,
+    originLength = originLength,
+    rowDev = rowDev,
+    colDev = colDev,
+    initialAge = initialAge,
+    lastValuationDate = lastValuationDate,
+    method = method
+  )
 
-  # Helper method to subset customers into a row and then partition transactions in that row and aggregate them
-  rowPartitionSums <- function(valDts, leftO, rightO){
-    # For testing:
-    # leftO <- params$LeftOrigin[1]; rightO <- params$RightOrigin[1]
-    # valDts <- params[LeftOrigin==leftO & RightOrigin==rightO]$ValuationDate
+  # Aggregate transactions by (CustomerID, TransactionDate)
+  transdaily <- transactions[, list(
+    Transactions = .N,
+    Amount = sum(Amount, na.rm = T)
+  ), keyby = list(CustomerID, TransactionDate)]
+  for(col in colsFinancial) set(transdaily, j = col, value = as.numeric(transdaily[[col]]))
 
-    # Get the group of customers in the row of the triangle defined by leftO and rightO
-    transactions.cmltv.subset <- transactions.cmltv[FirstValuationDate >= leftO & FirstValuationDate <= rightO]
+  # Determine unique customers, origin periods
+  origins <- unique(skel[, list(LeftOrigin, RightOrigin)])
+  custs <- transdaily[, list(FirstTransactionDate = min(TransactionDate)), keyby = CustomerID]
 
-    # If there are no customers in this row, fill in the data as necessary
-    if(nrow(transactions.cmltv.subset) == 0){
+  # Loop through the different origin periods
+  resultList <- list()
+  for(i in seq_len(nrow(origins))){
+    origin_i <- origins[i]
+    custs_i <- custs[between(FirstTransactionDate, origin_i$LeftOrigin, origin_i$RightOrigin)]
+    trans_i <- transdaily[custs_i, on = "CustomerID"]
+    skel_i <- skel[origin_i, on = c("LeftOrigin", "RightOrigin")]
 
-      # Build a table with the primary columns
-      primary <- data.table(ValuationDate=valDts, ActiveCustomers=0L, NewCustomers=0L, NewCustomers.cmltv=0L)
-
-      if(length(colsFinancial) > 0){
-        extra.cmltv <- transactions.cmltv.subset[, colsFinancial, with=FALSE]
-        extra.cmltv <- extra.cmltv[, lapply(.SD, function(x) rep(ifelse(class(x) == "integer", 0L, 0), length(valDts)))]
-
-        # Build a table with the extra non cumulative columns
-        extra.nonCmltv <- copy(extra.cmltv)
-        setnames(extra.nonCmltv, gsub("\\..*","",colnames(extra.cmltv))) # remove .cmltv from the column names
-
-        # Build a table with all the extra columns
-        extra <- cbind(extra.cmltv, extra.nonCmltv)
-
-        # Combine the primary and extra tables into one
-        result <- cbind(primary, extra)
-
-        # Set the column order of result
-        setcolorder(result, c(colnames(primary), sort(colnames(extra))))
-
-      } else{
-        result <- primary
-
-        # Set the column order of result
-        setcolorder(result, colnames(primary))
-      }
-
-      return(result)
+    if(nrow(custs_i) == 0){
+      result <- skel_i[, list(Age, Transactions = 0, ActiveCustomers = 0)]
+      for(col in colsFinancial) set(result, j = col, value = 0)
+      result[, eval(parse(text = paste(colsFinancial, " = NULL")))]
+      result[, `:=`(LeftOrigin = origin_i$LeftOrigin, RightOrigin = origin_i$RightOrigin)]
+      resultList <- c(resultList, list(result[]))
+      next
     }
 
-    # Build a table to partition the data by CustomerID and ValuationDate
-    partitioner <- CJ(CustomerID=unique(transactions.cmltv.subset$CustomerID), ValuationDate=valDts)
+    # Build a table of all (customer, age) pairs
+    skel_i[, Join := 1L]
+    custs_i[, Join := 1L]
+    joinTbl <- skel_i[custs_i, on = "Join", nomatch = 0, allow.cartesian = T]
 
-    # Add the Partition Numbers for each customer (used in calculating "active" customers)
-    partitioner[, PNum:=seq_along(ValuationDate), by=CustomerID]
+    # For each (customer, age) set ValuatinoDate
+    if(method == "dynamic"){
+      joinTbl[, ValuationDate := FirstTransactionDate %m+% months(Age) - 1]
+    }
 
-    # For each row in transactions.cmltv.subset get the nearest partition number via a backward rolling join from partitioner
-    # to transactions.cmltv.subset
-    setkey(partitioner, "CustomerID", "ValuationDate")
-    setkey(transactions.cmltv.subset, "CustomerID", "ValuationDate")
-    backwardjoin <- partitioner[transactions.cmltv.subset, roll=-Inf]
+    # Set LB, RB
+    joinTbl[, `:=`(
+      LB = c(LeftOrigin[1L], head(ValuationDate, -1) + 1L),
+      RB = ValuationDate
+    ), by = CustomerID]
+    joinTbl[, c("LeftOrigin", "RightOrigin", "FirstTransactionDate", "Join") := NULL]
 
-    # Partition the data via a forward rolling join from transactions.cmltv.subset to partitioner
-    forwardjoin <- backwardjoin[partitioner, roll=TRUE]
+    # Non-Equi Join
+    # For every (customer, valuationdate) get all the transactions falling into the period
+    # (customer, valuationdate) pairs with no transactions will be retained
+    trans_i[, `:=`(CustID = CustomerID)]
+    joinedTbl <- trans_i[joinTbl, on = c("CustomerID", "TransactionDate>=LB", "TransactionDate<=RB")]
 
-    # Aggregate results
-    expr <- "ActiveCustomers=sum(PNum == i.PNum, na.rm=TRUE), NewCustomers.cmltv=sum(!is.na(PNum))"
-    if(length(colsFinancial) > 0)
-      expr <- paste(expr, ",", paste0(colsFinancial, "=sum(", colsFinancial, ", na.rm=TRUE)", collapse=", "))
-    expr <- paste("list(", expr, ")")
-    result <- forwardjoin[, eval(parse(text=expr)), by=ValuationDate]
+    # Aggregate the results per (Age)
+    strEvalCols <- paste0(colsFinancial, " = sum(", colsFinancial, ", na.rm = T)")
+    strEvalCols <- c("Transactions = sum(Transactions, na.rm = T)", "CustsWithoutTransaction = sum(is.na(CustID))", strEvalCols)
+    strEvalCols <- paste0(strEvalCols, collapse = ", ")
+    strEval <- paste0("list(", strEvalCols, ")")
+    result <- joinedTbl[, eval(parse(text = strEval)), keyby = Age]
+    result[, `:=`(ActiveCustomers = nrow(custs_i) - CustsWithoutTransaction, CustsWithoutTransaction = NULL)]
+    result[, `:=`(LeftOrigin = origin_i$LeftOrigin, RightOrigin = origin_i$RightOrigin)]
 
-    # Build the non-cumulative columns
-    nonCmltv <- result[, !c("ValuationDate", "ActiveCustomers"), with=FALSE]
-    nonCmltv <- nonCmltv[, lapply(.SD, function(x) c(x[1], tail(x,-1) - head(x,-1)))]
-    setnames(nonCmltv, gsub("\\..*","",colnames(nonCmltv))) # remove .cmltv from the column names
-
-    # Join result and nonCmltv tables
-    result <- cbind(result, nonCmltv)
-
-    # Set the column order of result
-    guaranteedCols <- c("ValuationDate", "ActiveCustomers", "NewCustomers", "NewCustomers.cmltv")
-    setcolorder(result, c(guaranteedCols, sort(setdiff(colnames(result), guaranteedCols))))
-
-    return(result)
+    # Append results
+    resultList <- c(resultList, list(result[]))
   }
 
-  # For each (LeftOrigin, RightOrigin) pair, partition and aggregate the transactions by the ValuationDate column
-  if(verbose) print("Building triangle data.table")
-  triangleDT <- params[, c(rowPartitionSums(ValuationDate, LeftOrigin[1], RightOrigin[1]), Age=list(Age)),
-                       by=list(LeftOrigin, RightOrigin)]
+  # Combine result sets
+  triangleDT <- rbindlist(resultList, use.names = T)
 
-  # Change the column order so that Age comes after ValuationDate
-  setcolorder(triangleDT, unique(c("LeftOrigin", "RightOrigin", "ValuationDate", "Age", colnames(triangleDT))))
+  # If method = Static, include ValuationDate
+  if(method == "static") triangleDT[skel, ValuationDate := i.ValuationDate, on = c("LeftOrigin", "RightOrigin", "Age")]
+
+  # Make cumulative columns
+  cmltvCols <- c("Transactions", colsFinancial)
+  strEvalCols <- paste0(cmltvCols, ".cmltv = cumsum(", cmltvCols, ")", collapse = ", ")
+  strEval <- paste0("`:=`(", strEvalCols, ")")
+  triangleDT[, eval(parse(text = strEval)), by = list(LeftOrigin, RightOrigin)]
+
+  # Clean up
+  colz <- c("LeftOrigin", "RightOrigin", "ValuationDate", "Age", "ActiveCustomers", "Transactions", "Transactions.cmltv")
+  colz <- intersect(unique(c(colz, sort(colnames(triangleDT)))), colnames(triangleDT))
+  setcolorder(triangleDT, colz)
 
   # If format == "triangular", return a list of triangle objects. Otherwise return triangleDT
-  if(verbose) print("Building triangle list")
-  if(format=="triangular") return(tall_to_triangular(triangleDT)) else return(triangleDT)
+  if(format=="triangular"){
+    return(tall_to_triangular(triangleDT))
+  } else{
+    return(triangleDT[])
+  }
 }

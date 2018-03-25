@@ -19,8 +19,7 @@
 #'
 #' set.seed(2016)
 #' transactions <- sample_transactions(10)
-#' transactions.cmltv <- cumulate_transactions(transactions, colsFinancial="Amount")
-#' tris <- make_triangles(transactions.cmltv)
+#' tris <- make_triangles(transactions)
 #' write_triangles(tris)
 
 write_triangles <- function(triangles, filename="triangles.csv"){

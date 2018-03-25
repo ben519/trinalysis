@@ -4,26 +4,28 @@
 \alias{as.triangle}
 \title{as.triangle}
 \usage{
-as.triangle(triangleDT, valueCol = "Transactions")
+as.triangle(triangleDT, valueCol = "Transactions",
+  descriptiveHeaders = TRUE)
 }
 \arguments{
 \item{triangleDT}{A triangle in tall, data.table format}
 
 \item{valueCol}{Name of the column to convert to triangular format}
+
+\item{descriptiveHeaders}{Should headers be descriptive?}
 }
 \description{
 Convert a single triangle from tall format to triangular format
 }
 \details{
-Returns a data.table object with rows representing origin periods and columns representing valuation ages
+Returns a matrix object with rows representing origin periods and columns representing valuation ages
 }
 \examples{
 library(data.table)
 
 set.seed(2357)
 transactions <- sample_transactions(10)
-transactions.cmltv <- cumulate_transactions(transactions)
-triangles <- make_triangles(transactions.cmltv, format="tall")
+triangles <- make_triangles(transactions, format="tall")
 as.triangle(triangles, valueCol="ActiveCustomers")
+as.triangle(triangles, valueCol="Transactions")
 }
-

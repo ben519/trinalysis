@@ -6,7 +6,8 @@
 \usage{
 triangle_skeleton(minLeftOrigin, fromMinLeftOrigin = FALSE,
   originLength = 12, rowDev = 12, colDev = 12,
-  initialAge = originLength, lastValuationDate = Sys.Date())
+  initialAge = originLength, lastValuationDate = Sys.Date(),
+  method = "static")
 }
 \arguments{
 \item{minLeftOrigin}{When should the first origin period (potentially) start? (Depends on \code{fromMinLeftOrigin})}
@@ -23,6 +24,9 @@ valuation date will be exactly \code{lastValuationDate}}
 \item{initialAge}{At what age should the first valuation period start?}
 
 \item{lastValuationDate}{When whould the last valuation date (potentially) be? (Depends on \code{fromMinLeftOrigin})}
+
+\item{method}{One of {"static", "dynamic"}. If static, Age x is relative to the beginning of the cohort. If dynamic,
+Age x is relative to the acquisition date of each customer}
 }
 \description{
 Generate the dates needed to build a triangle analysis
@@ -32,6 +36,4 @@ Returns a data.table with columns {LeftOrigin, RightOrigin, ValuationDate, Age}
 }
 \examples{
 triangle_skeleton(as.Date("2014-1-1"))
-eom(seq.Date(as.Date("2015-1-1"), as.Date("2015-12-31"), by="month"))
 }
-
