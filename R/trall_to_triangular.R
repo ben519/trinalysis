@@ -21,16 +21,19 @@
 #' triangles <- make_triangles(transactions, format="tall")
 #' tall_to_triangular(triangles)
 
-tall_to_triangular <- function(triangleDT, descriptiveHeaders = TRUE){
+tall_to_triangular <- function(triangleDT, descriptiveHeaders = TRUE, idCols = "Cohort"){
   # Converts a set of triangles in the tall, data.table format to a list of triangular formats
 
-  dropcols <- intersect(colnames(triangleDT), c("LeftOrigin", "RightOrigin", "ValuationDate", "Age"))
-  triCols <- colnames(triangleDT[, !dropcols, with=FALSE])
-
-  mylist <- list()
+  triCols <- setdiff(colnames(triangleDT), c("LeftOrigin", "RightOrigin", "ValuationDate", "Age", "Cohort", "CohortCustomers"))
+  triList <- list()
   for(colname in triCols){
-    mylist[[length(mylist)+1]] <- as.triangle(copy(triangleDT), valueCol=colname, descriptiveHeaders = descriptiveHeaders)
+    triList[[length(triList) + 1L]] <- as.triangle(
+      triangleDT = copy(triangleDT),
+      valueCol = colname,
+      descriptiveHeaders = descriptiveHeaders,
+      idCols = setdiff(idCols, colname)
+    )
   }
-  names(mylist) <- triCols
-  return(mylist)
+  names(triList) <- triCols
+  return(triList)
 }

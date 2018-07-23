@@ -23,21 +23,26 @@
 #' as.triangle(triangles, valueCol="ActiveCustomers")
 #' as.triangle(triangles, valueCol="Transactions")
 
-as.triangle <- function(triangleDT, valueCol="Transactions", descriptiveHeaders = TRUE){
+as.triangle <- function(triangleDT, valueCol = "Transactions", descriptiveHeaders = TRUE, idCols = "Cohort"){
   # Convert a triangle from tall format to triangular format
+  # idCols must either contain {LeftOrigin, RightOrigin} or {Cohort} but can contain additional columns (commonly CohortCustomers)
 
-  tri <- triangleDT[, c("LeftOrigin", "RightOrigin", "Age", valueCol), with=FALSE]
-  tri[, Origin := paste0(LeftOrigin, " - ", RightOrigin)]
+  if(length(intersect(c("LeftOrigin", "RightOrigin"), idCols)) != 2 & !"Cohort" %in% idCols)
+    stop("idCols must either contain {LeftOrigin, RightOrigin} or {Cohort}")
+
+  if(valueCol %in% idCols) stop("valueCol can't be one of idCols")
+
+  keepCols <- unique(c("Cohort", idCols, "Age", valueCol))
+  tri <- triangleDT[, keepCols, with=FALSE]
 
   if(descriptiveHeaders == T & !stringr::str_detect(valueCol, "\\.cmltv$")){
-    tri[, Header := paste0(shift(Age, type = "lag", fill = 0), " - ", Age), by = Origin]
+    tri[, Header := paste0(shift(Age, type = "lag", fill = 0), " - ", Age), by = Cohort]
     tri[, Header := factor(Header, levels = unique(Header))]
   } else{
     tri[, Header := Age]
   }
 
-  tri <- dcast.data.table(tri, Origin ~ Header, value.var=valueCol, drop=FALSE)
-  result <- as.matrix(tri[, 2:ncol(tri), with=FALSE])
-  dimnames(result) <- list(Origin = tri$Origin, `Age (months)` = colnames(tri)[2:ncol(tri)])
-  return(result)
+  dcastFormula <- paste(paste(idCols, collapse = " + "), " ~ Header")
+  result <- dcast.data.table(tri, eval(parse(text = dcastFormula)), value.var=valueCol, drop = c(TRUE, FALSE))
+  return(result[])
 }

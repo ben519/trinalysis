@@ -91,7 +91,7 @@ make_triangles <- function(transactions, format = "triangular", minLeftOrigin = 
       result <- skel_i[, list(Age, Transactions = 0, ActiveCustomers = 0)]
       for(col in colsFinancial) set(result, j = col, value = 0)
       result[, eval(parse(text = paste(colsFinancial, " = NULL")))]
-      result[, `:=`(LeftOrigin = origin_i$LeftOrigin, RightOrigin = origin_i$RightOrigin)]
+      result[, `:=`(CohortCustomers = 0, LeftOrigin = origin_i$LeftOrigin, RightOrigin = origin_i$RightOrigin)]
       resultList <- c(resultList, list(result[]))
       next
     }
@@ -126,7 +126,7 @@ make_triangles <- function(transactions, format = "triangular", minLeftOrigin = 
     strEval <- paste0("list(", strEvalCols, ")")
     result <- joinedTbl[, eval(parse(text = strEval)), keyby = Age]
     result[, `:=`(ActiveCustomers = nrow(custs_i) - CustsWithoutTransaction, CustsWithoutTransaction = NULL)]
-    result[, `:=`(LeftOrigin = origin_i$LeftOrigin, RightOrigin = origin_i$RightOrigin)]
+    result[, `:=`(CohortCustomers = nrow(custs_i), LeftOrigin = origin_i$LeftOrigin, RightOrigin = origin_i$RightOrigin)]
 
     # Append results
     resultList <- c(resultList, list(result[]))
@@ -144,8 +144,13 @@ make_triangles <- function(transactions, format = "triangular", minLeftOrigin = 
   strEval <- paste0("`:=`(", strEvalCols, ")")
   triangleDT[, eval(parse(text = strEval)), by = list(LeftOrigin, RightOrigin)]
 
+  # Insert column Cohort
+  triangleDT[, Cohort := paste(LeftOrigin, RightOrigin, sep = " - ")]
+  triangleDT[, Cohort := factor(Cohort, levels = unique(Cohort))]
+
   # Clean up
-  colz <- c("LeftOrigin", "RightOrigin", "ValuationDate", "Age", "ActiveCustomers", "Transactions", "Transactions.cmltv")
+  colz <- c("Cohort", "LeftOrigin", "RightOrigin", "ValuationDate", "Age", "CohortCustomers", "ActiveCustomers", "Transactions",
+            "Transactions.cmltv")
   colz <- intersect(unique(c(colz, sort(colnames(triangleDT)))), colnames(triangleDT))
   setcolorder(triangleDT, colz)
 
