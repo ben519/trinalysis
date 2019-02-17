@@ -1,0 +1,58 @@
+---
+output: github_document
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, echo = FALSE}
+knitr::opts_chunk$set(collapse = TRUE)
+```
+
+# trinalysis
+Tools for working with transactional data in R
+
+# Installation
+
+```r
+install.packages("devtools")
+devtools::install_github("ben519/trinalysis")
+```
+
+---
+
+# Demo
+
+## Simulate Random Transactions (with a realistic pattern of customer churn)
+```{r}
+library(trinalysis)
+
+set.seed(2357)
+transactions <- sample_transactions(
+  nCusts = 100, 
+  sdTransactions = 10, 
+  sdAmount = 10, 
+  minDate = as.Date("2010-1-1"), 
+  maxDate = as.Date("2015-12-31"), 
+  products = c("baseball", "basketball", "football", "soccerball")
+)
+
+transactions
+```
+
+## Extract customers from transactions
+```{r}
+custs <- get_customers(transactions, colsCategory = "Product")
+print(custs, 5)
+```
+
+## Basic Cohort Analyses
+```{r}
+make_triangles(
+  transactions, 
+  format="triangular", 
+  minLeftOrigin = as.Date("2010-01-01")
+)
+```
+
+## Contact
+If you'd like to contact me regarding bugs, questions, or general consulting, feel free to drop me a line - bgorman519@gmail.com
