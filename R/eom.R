@@ -15,9 +15,10 @@
 #' eom(as.Date("2016-2-14"))
 #' eom(seq.Date(as.Date("2015-1-1"), as.Date("2015-12-31"), by="month"))
 
-eom <- function(dates){
+eom <- function(dates, p = as.POSIXlt(dates)){
   # Returns the last day of the month for each Date in dates
 
-  pDates <- as.POSIXlt(dates)
-  return(as.Date(modifyList(pDates, list(mon=pDates$mon + 1, mday=0))))
+  p$mon <- p$mon + 1
+  p$mday <- 0
+  return(as.Date(p))
 }

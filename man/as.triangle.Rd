@@ -5,7 +5,7 @@
 \title{as.triangle}
 \usage{
 as.triangle(triangleDT, valueCol = "Transactions",
-  descriptiveHeaders = TRUE)
+  descriptiveHeaders = TRUE, idCols = "Cohort")
 }
 \arguments{
 \item{triangleDT}{A triangle in tall, data.table format}

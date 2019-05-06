@@ -11,7 +11,7 @@ Encoding: UTF-8
 URL: https://github.com/ben519/trinalysis
 BugReports: https://github.com/ben519/trinalysis/issues
 LazyData: true
-RoxygenNote: 6.0.1
+RoxygenNote: 6.1.1
 Imports:
   data.table(>= 1.9.7),
   lubridate(>= 1.7.1)

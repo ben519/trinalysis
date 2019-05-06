@@ -49,7 +49,7 @@ print(custs, 5)
 ```{r}
 make_triangles(
   transactions, 
-  format="triangular", 
+  format = "triangular", 
   minLeftOrigin = as.Date("2010-01-01")
 )
 ```

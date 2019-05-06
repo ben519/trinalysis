@@ -4,7 +4,8 @@
 \alias{tall_to_triangular}
 \title{Tall to Triangular}
 \usage{
-tall_to_triangular(triangleDT, descriptiveHeaders = TRUE)
+tall_to_triangular(triangleDT, descriptiveHeaders = TRUE,
+  idCols = "Cohort")
 }
 \arguments{
 \item{triangleDT}{Triangles in tall, data.table format}

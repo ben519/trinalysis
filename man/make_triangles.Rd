@@ -4,11 +4,12 @@
 \alias{make_triangles}
 \title{Make Triangles}
 \usage{
-make_triangles(transactions, format = "triangular", minLeftOrigin = NULL,
-  originLength = 12, rowDev = 12, colDev = 12, lastValuationDate = NULL,
-  fromMinLeftOrigin = TRUE, initialAge = originLength,
-  colsFinancial = "auto", verbose = FALSE, colCustomerID = "CustomerID",
-  colTransactionDate = "TransactionDate", method = "static")
+make_triangles(transactions, format = "triangular",
+  minLeftOrigin = NULL, originLength = 12, rowDev = 12,
+  colDev = 12, lastValuationDate = NULL, fromMinLeftOrigin = TRUE,
+  initialAge = originLength, colsFinancial = "auto", verbose = FALSE,
+  colCustomerID = "CustomerID", colTransactionDate = "TransactionDate",
+  method = "static")
 }
 \arguments{
 \item{transactions}{A data.table of with at least columns {TransactionID, TransactionDate, CustomerID}}

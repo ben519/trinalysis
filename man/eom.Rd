@@ -4,7 +4,7 @@
 \alias{eom}
 \title{End of Month}
 \usage{
-eom(dates)
+eom(dates, p = as.POSIXlt(dates))
 }
 \arguments{
 \item{dates}{A vector of dates}

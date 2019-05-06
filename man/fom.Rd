@@ -4,7 +4,7 @@
 \alias{fom}
 \title{End of Month}
 \usage{
-fom(dates)
+fom(dates, p = as.POSIXlt(dates))
 }
 \arguments{
 \item{dates}{A vector of dates}

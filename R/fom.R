@@ -15,9 +15,9 @@
 #' fom(as.Date("2016-2-14"))
 #' fom(seq.Date(as.Date("2015-1-1"), as.Date("2015-12-31"), by="month"))
 
-fom <- function(dates){
+fom <- function(dates, p = as.POSIXlt(dates)){
   # Returns the first day of the month for each Date in dates
 
-  pDates <- as.POSIXlt(dates)
-  return(as.Date(modifyList(pDates, list(mday=1))))
+  p$mday <- 1
+  return(as.Date(p))
 }
